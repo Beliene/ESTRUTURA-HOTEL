@@ -1,40 +1,43 @@
+
 #include <iostream>
 #include <vector>
 #include <string>
 
+using namespace std;
+
 // Classe para Cliente
 class Cliente {
 public:
-    std::string nome;
-    std::string nascimento;
-    std::string telefone;
-    std::string formaPagamento;
+    string nome;
+    string nascimento;
+    string telefone;
+    string formaPagamento;
 
-    Cliente(std::string nome, std::string nascimento, std::string telefone, std::string formaPagamento)
+    Cliente(string nome, string nascimento, string telefone, string formaPagamento)
         : nome(nome), nascimento(nascimento), telefone(telefone), formaPagamento(formaPagamento) {}
 };
 
 // Classe para Estadia
 class Estadia {
 public:
-    std::string cpfCliente;
+    string cpfCliente;
     double valorDiaria;
     double totalAPagar;
-    std::string formaPagamento;
+    string formaPagamento;
 
-    Estadia(std::string cpfCliente, double valorDiaria, double totalAPagar, std::string formaPagamento)
+    Estadia(string cpfCliente, double valorDiaria, double totalAPagar, string formaPagamento)
         : cpfCliente(cpfCliente), valorDiaria(valorDiaria), totalAPagar(totalAPagar), formaPagamento(formaPagamento) {}
 };
 
 // Classe para Serviço
 class Servico {
 public:
-    std::string codigo;
+    string codigo;
     double valorCusto;
     double valorPrestacao;
-    std::string executadoPor;
+    string executadoPor;
 
-    Servico(std::string codigo, double valorCusto, double valorPrestacao, std::string executadoPor)
+    Servico(string codigo, double valorCusto, double valorPrestacao, string executadoPor)
         : codigo(codigo), valorCusto(valorCusto), valorPrestacao(valorPrestacao), executadoPor(executadoPor) {}
 
     double calcularLucro() const {
@@ -45,142 +48,142 @@ public:
 // Classe para Funcionário
 class Funcionario {
 public:
-    std::string cpf;
-    std::vector<std::string> servicosRealizados;
+    string cpf;
+    vector<string> servicosRealizados;
 
-    Funcionario(std::string cpf) : cpf(cpf) {}
+    Funcionario(string cpf) : cpf(cpf) {}
 
-    void adicionarServico(const std::string& servico) {
+    void adicionarServico(const string& servico) {
         servicosRealizados.push_back(servico);
     }
 };
 
 // Funções de Cadastro
-void cadastrarCliente(std::vector<Cliente>& clientes) {
-    std::string nome, nascimento, telefone, formaPagamento;
-    std::cout << "Insira o nome do cliente: ";
-    std::cin.ignore();
-    std::getline(std::cin, nome);
-    std::cout << "Insira a data de nascimento: ";
-    std::getline(std::cin, nascimento);
-    std::cout << "Insira o telefone: ";
-    std::getline(std::cin, telefone);
-    std::cout << "Insira a forma de pagamento: ";
-    std::getline(std::cin, formaPagamento);
+void cadastrarCliente(vector<Cliente>& clientes) {
+    string nome, nascimento, telefone, formaPagamento;
+    cout << "Insira o nome do cliente: ";
+    cin.ignore();
+    getline(cin, nome);
+    cout << "Insira a data de nascimento: ";
+    getline(cin, nascimento);
+    cout << "Insira o telefone: ";
+    getline(cin, telefone);
+    cout << "Insira a forma de pagamento: ";
+    getline(cin, formaPagamento);
 
     clientes.push_back(Cliente(nome, nascimento, telefone, formaPagamento));
-    std::cout << "Cliente cadastrado com sucesso!\n";
+    cout << "Cliente cadastrado com sucesso!\n";
 }
 
-void cadastrarEstadia(std::vector<Estadia>& estadias) {
-    std::string cpfCliente, formaPagamento;
+void cadastrarEstadia(vector<Estadia>& estadias) {
+    string cpfCliente, formaPagamento;
     double valorDiaria, totalAPagar;
-    std::cout << "Insira o CPF do cliente: ";
-    std::cin.ignore();
-    std::getline(std::cin, cpfCliente);
-    std::cout << "Insira o valor da diária: ";
-    std::cin >> valorDiaria;
-    std::cout << "Insira o total a pagar: ";
-    std::cin >> totalAPagar;
-    std::cin.ignore();
-    std::cout << "Insira a forma de pagamento: ";
-    std::getline(std::cin, formaPagamento);
+    cout << "Insira o CPF do cliente: ";
+    cin.ignore();
+    getline(cin, cpfCliente);
+    cout << "Insira o valor da diária: ";
+    cin >> valorDiaria;
+    cout << "Insira o total a pagar: ";
+    cin >> totalAPagar;
+    cin.ignore();
+    cout << "Insira a forma de pagamento: ";
+    getline(cin, formaPagamento);
 
     estadias.push_back(Estadia(cpfCliente, valorDiaria, totalAPagar, formaPagamento));
-    std::cout << "Estadia cadastrada com sucesso!\n";
+    cout << "Estadia cadastrada com sucesso!\n";
 }
 
-void cadastrarServico(std::vector<Servico>& servicos) {
-    std::string codigo, executadoPor;
+void cadastrarServico(vector<Servico>& servicos) {
+    string codigo, executadoPor;
     double valorCusto, valorPrestacao;
-    std::cout << "Insira o código do serviço: ";
-    std::cin.ignore();
-    std::getline(std::cin, codigo);
-    std::cout << "Insira o valor de custo: ";
-    std::cin >> valorCusto;
-    std::cout << "Insira o valor de prestação: ";
-    std::cin >> valorPrestacao;
-    std::cin.ignore();
-    std::cout << "Nome do responsável pela execução: ";
-    std::getline(std::cin, executadoPor);
+    cout << "Insira o código do serviço: ";
+    cin.ignore();
+    getline(cin, codigo);
+    cout << "Insira o valor de custo: ";
+    cin >> valorCusto;
+    cout << "Insira o valor de prestação: ";
+    cin >> valorPrestacao;
+    cin.ignore();
+    cout << "Nome do responsável pela execução: ";
+    getline(cin, executadoPor);
 
     servicos.push_back(Servico(codigo, valorCusto, valorPrestacao, executadoPor));
-    std::cout << "Serviço cadastrado com sucesso!\n";
+    cout << "Serviço cadastrado com sucesso!\n";
 }
 
-void cadastrarFuncionario(std::vector<Funcionario>& funcionarios) {
-    std::string cpf;
-    std::cout << "Insira o CPF do funcionário: ";
-    std::cin.ignore();
-    std::getline(std::cin, cpf);
+void cadastrarFuncionario(vector<Funcionario>& funcionarios) {
+    string cpf;
+    cout << "Insira o CPF do funcionário: ";
+    cin.ignore();
+    getline(cin, cpf);
 
     funcionarios.push_back(Funcionario(cpf));
-    std::cout << "Funcionário cadastrado com sucesso!\n";
+    cout << "Funcionário cadastrado com sucesso!\n";
 }
 
 // Funções de Listagem
-void listarClientes(const std::vector<Cliente>& clientes) {
-    std::cout << "Lista de Clientes:\n";
+void listarClientes(const vector<Cliente>& clientes) {
+    cout << "Lista de Clientes:\n";
     for (const auto& cliente : clientes) {
-        std::cout << "Nome: " << cliente.nome
+        cout << "Nome: " << cliente.nome
                   << ", Nascimento: " << cliente.nascimento
                   << ", Telefone: " << cliente.telefone
                   << ", Forma de Pagamento: " << cliente.formaPagamento << "\n";
     }
 }
 
-void listarEstadias(const std::vector<Estadia>& estadias) {
-    std::cout << "Lista de Estadias:\n";
+void listarEstadias(const vector<Estadia>& estadias) {
+    cout << "Lista de Estadias:\n";
     for (const auto& estadia : estadias) {
-        std::cout << "CPF do Cliente: " << estadia.cpfCliente
+        cout << "CPF do Cliente: " << estadia.cpfCliente
                   << ", Valor Diaria: " << estadia.valorDiaria
                   << ", Total a Pagar: " << estadia.totalAPagar
                   << ", Forma de Pagamento: " << estadia.formaPagamento << "\n";
     }
 }
 
-void listarServicos(const std::vector<Servico>& servicos) {
-    std::cout << "Lista de Serviços:\n";
+void listarServicos(const vector<Servico>& servicos) {
+    cout << "Lista de Serviços:\n";
     for (const auto& servico : servicos) {
-        std::cout << "Código: " << servico.codigo
+        cout << "Código: " << servico.codigo
                   << ", Valor Custo: " << servico.valorCusto
                   << ", Valor Prestacao: " << servico.valorPrestacao
                   << ", Executado por: " << servico.executadoPor << "\n";
     }
 }
 
-void listarFuncionarios(const std::vector<Funcionario>& funcionarios) {
-    std::cout << "Lista de Funcionários:\n";
+void listarFuncionarios(const vector<Funcionario>& funcionarios) {
+    cout << "Lista de Funcionários:\n";
     for (const auto& funcionario : funcionarios) {
-        std::cout << "CPF: " << funcionario.cpf << "\n";
-        std::cout << "Serviços Realizados: ";
+        cout << "CPF: " << funcionario.cpf << "\n";
+        cout << "Serviços Realizados: ";
         for (const auto& servico : funcionario.servicosRealizados) {
-            std::cout << servico << " ";
+            cout << servico << " ";
         }
-        std::cout << "\n";
+        cout << "\n";
     }
 }
 
 int main() {
-    std::vector<Cliente> clientes;
-    std::vector<Estadia> estadias;
-    std::vector<Servico> servicos;
-    std::vector<Funcionario> funcionarios;
+    vector<Cliente> clientes;
+    vector<Estadia> estadias;
+    vector<Servico> servicos;
+    vector<Funcionario> funcionarios;
     int opcao;
 
     do {
-        std::cout << "\nMenu Principal:\n";
-        std::cout << "1. Cadastrar Cliente\n";
-        std::cout << "2. Cadastrar Estadia\n";
-        std::cout << "3. Cadastrar Servico\n";
-        std::cout << "4. Cadastrar Funcionario\n";
-        std::cout << "5. Listar Clientes\n";
-        std::cout << "6. Listar Estadias\n";
-        std::cout << "7. Listar Serviços\n";
-        std::cout << "8. Listar Funcionários\n";
-        std::cout << "9. Sair\n";
-        std::cout << "Escolha uma opção: ";
-        std::cin >> opcao;
+        cout << "\nMenu Principal:\n";
+        cout << "1. Cadastrar Cliente\n";
+        cout << "2. Cadastrar Estadia\n";
+        cout << "3. Cadastrar Servico\n";
+        cout << "4. Cadastrar Funcionario\n";
+        cout << "5. Listar Clientes\n";
+        cout << "6. Listar Estadias\n";
+        cout << "7. Listar Serviços\n";
+        cout << "8. Listar Funcionários\n";
+        cout << "9. Sair\n";
+        cout << "Escolha uma opção: ";
+        cin >> opcao;
 
         switch (opcao) {
             case 1:
@@ -208,10 +211,10 @@ int main() {
                 listarFuncionarios(funcionarios);
                 break;
             case 9:
-                std::cout << "Saindo...\n";
+                cout << "Saindo...\n";
                 break;
             default:
-                std::cout << "Opção inválida, tente novamente.\n";
+                cout << "Opção inválida, tente novamente.\n";
         }
     } while (opcao != 9);
 
