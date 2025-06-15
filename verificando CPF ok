@@ -70,8 +70,9 @@ public:
 
     void insere_dados(const char* cpf) {
         strcpy(cpf_cliente,cpf);
+         cin.ignore();
 
-        le_string("\nInsira o nome do cliente: ", nome, MAX_NOME);
+        le_string("Insira o nome do cliente: ", nome, MAX_NOME);
 
         while (true) {
             le_string("Insira a data de nascimento (DD/MM/AAAA): ", nascimento, MAX_NASCIMENTO);
