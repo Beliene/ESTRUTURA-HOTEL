@@ -120,13 +120,36 @@ public:
             cout << "Nome inválido! O nome não pode ser vazio nem apenas espaços.\n";
         }
 
-        while (true) {
+         while (true) {
             le_string("Insira a data de nascimento (DD/MM/AAAA): ", nascimento, MAX_NASCIMENTO);
+            // Checa se o formato é exatamente DD/MM/AAAA
             if (strlen(nascimento) == 10 &&
+                nascimento[0] >= '0' && nascimento[0] <= '9' &&
+                nascimento[1] >= '0' && nascimento[1] <= '9' &&
                 nascimento[2] == '/' &&
-                nascimento[5] == '/') {
-                cout << "Data válida: " << nascimento << endl;
-                break;
+                nascimento[3] >= '0' && nascimento[3] <= '9' &&
+                nascimento[4] >= '0' && nascimento[4] <= '9' &&
+                nascimento[5] == '/' &&
+                nascimento[6] >= '0' && nascimento[6] <= '9' &&
+                nascimento[7] >= '0' && nascimento[7] <= '9' &&
+                nascimento[8] >= '0' && nascimento[8] <= '9' &&
+                nascimento[9] >= '0' && nascimento[9] <= '9') {
+
+                int dia = (nascimento[0]-'0')*10 + (nascimento[1]-'0');
+                int mes = (nascimento[3]-'0')*10 + (nascimento[4]-'0');
+                int ano = (nascimento[6]-'0')*1000 + (nascimento[7]-'0')*100 +
+                        (nascimento[8]-'0')*10 + (nascimento[9]-'0');
+
+                // Validação simples de dia/mês/ano (sem ano bissexto)
+                int diasNoMes[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+                if (
+                    ano >= 1900 && ano <= 2100 &&
+                    mes >= 1 && mes <= 12 &&
+                    dia >= 1 && dia <= diasNoMes[mes-1]
+                ) {
+                    cout << "Data válida: " << nascimento << endl;
+                    break;
+                }
             }
             cout << "Entrada inválida, tente novamente." << endl;
         }
@@ -233,7 +256,9 @@ public:
     char executadoPor[MAX_NOME];
 
     void insere_dados(const char* cpf) {
+        cin.ignore();
         strcpy(cpfFuncionario, cpf);
+        cin.ignore();
         le_string("Insira o código do serviço: ", codigo, MAX_CODIGO);
         cout << "Insira o valor de custo: ";
         cin >> valorCusto;
@@ -265,7 +290,9 @@ public:
     int qtdServicosRealizados;
 
     void insere_dados() {
+        cin.ignore();
         le_string("Insira o Nome do funcionário: ", nome, MAX_NOME);
+        cin.ignore();
         le_cpf("Insira o CPF do funcionário: ", cpf);
         qtdServicosRealizados = 0;
     }
