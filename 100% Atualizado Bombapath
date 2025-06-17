@@ -1,0 +1,1463 @@
+    #include <iostream>
+    #include <string.h> // Para strcpy, strcmp, etc.
+    #include <stdio.h>  // Para fgets e fflush
+    #include <clocale>  // Para setlocale
+
+    using namespace std;
+
+    // Constantes para definir os tamanhos máximos dos arrays
+    const int MAX_REGISTROS = 100; // Máximo de registros para cada entidade
+    const int MAX_NOME = 50;
+    const int MAX_NASCIMENTO = 12;
+    const int MAX_TELEFONE = 20;
+    const int MAX_PAGAMENTO = 30;
+    const int MAX_CPF = 12; // Aumentado para comportar o '\0'
+    const int MAX_CODIGO = 20;
+    const int MAX_SERVICOS_POR_FUNC = 10;
+    const int MAX_NUMERO_CARTAO_VIP = 100;
+    const int MAX_SERVICOS_POR_ESTADIA = 10;
+    const int MAX_ENDERECO = 100;
+
+    bool verificadorDeCpf(const char* cpf) {
+        if (strlen(cpf) != 11) return false;
+        for (int i = 0; i < 11; i++) {
+            if (cpf[i] < '0' || cpf[i] > '9') return false;
+        }
+        return true;
+    }
+
+    // Função para ler entrada de string de forma segura
+    void le_string(const char* mensagem, char* destino, int tamanhoEsperado, bool tamanho_exato = false) {
+        while (true) {
+            cout << mensagem;
+            if (fgets(destino, tamanhoEsperado, stdin)) {
+                int len = strlen(destino);
+                if (len > 0 && destino[len-1] == '\n') destino[len-1] = '\0';
+                if (!tamanho_exato || strlen(destino) == tamanhoEsperado-1) // -1 por causa do '\0'
+                    break;
+                cout << "Entrada inválida! ";
+                if (tamanho_exato) cout << "Digite exatamente " << (tamanhoEsperado-1) << " caracteres.\n";
+            }
+        }
+    }
+
+    void le_cpf(const char* mensagem, char* destino) {
+        while (true) {
+            cout << mensagem;
+            fflush(stdin);
+            if (fgets(destino, MAX_CPF, stdin)) {
+                int len = strlen(destino);
+                if (len > 0 && destino[len-1] == '\n') destino[len-1] = '\0';
+                if (verificadorDeCpf(destino)) break;
+                cout << "CPF inválido! Digite exatamente 11 dígitos numéricos.\n";
+            }
+        }
+    }
+
+    void le_forma_pagamento(char* destino) {
+        int opcao = 0;
+        char numeroCartao[32];
+        while (true) {
+            cout << "\nEscolha a forma de pagamento:\n";
+            cout << "1. Cartao de Credito\n";
+            cout << "2. Cartao de Debito\n";
+            cout << "3. PIX\n";
+            cout << "4. Dinheiro\n";
+            cout << "Digite o numero da opcao: ";
+            cin >> opcao;
+            cin.ignore();
+
+            if (opcao == 1) {
+                cout << "Digite o numero do cartao de credito: ";
+                fflush(stdin);
+                le_string("", numeroCartao, 32);
+                strcpy(destino, "Cartao de Credito");
+                break;
+            } else if (opcao == 2) {
+                cout << "Digite o numero do cartao de debito: ";
+                fflush(stdin);
+                le_string("", numeroCartao, 32);
+                strcpy(destino, "Cartao de Debito");
+                break;
+            } else if (opcao == 3) {
+                strcpy(destino, "PIX");
+                break;
+            } else if (opcao == 4) {
+                strcpy(destino, "Dinheiro");
+                break;
+            } else {
+                cout << "Entrada invalida! Digite uma das opcoes disponiveis.\n";
+            }
+        }
+    }
+
+    void verifica_numero(const char* mensagem, double& destino) {
+        while (true) {
+            cout << mensagem;
+            cin >> destino;
+
+            // VERIFICAÇÃO 1: O usuário digitou um número ou um texto?
+            if (cin.fail()) {
+                cout << "Entrada inválida. Por favor, digite um valor numérico.\n";
+                cin.clear(); // Limpa o estado de erro do cin
+
+                // Descarta a entrada incorreta. Usamos um número grande e fixo.
+                cin.ignore(10000, '\n');
+                continue;
+            }
+
+            // Se a entrada foi um número, limpa o resto do buffer.
+            // Usamos um número grande e fixo em vez de numeric_limits.
+            cin.ignore(10000, '\n');
+
+            // VERIFICAÇÃO 2: O número é não-negativo?
+            if (destino >= 0) {
+                break; // O número é válido, sai do loop
+            } else {
+                cout << "O valor não pode ser negativo. Tente novamente.\n";
+            }
+        }
+    }
+
+    class CLIENTE {
+    public:
+        char nome[MAX_NOME];
+        char nascimento[MAX_NASCIMENTO];
+        char telefone[MAX_TELEFONE];
+        char endereco[MAX_ENDERECO];
+        char formaPagamento[MAX_PAGAMENTO];
+        char cartaoVip[MAX_NUMERO_CARTAO_VIP];
+        char cpf_cliente[MAX_CPF];
+
+        void insere_dados(const char* cpf) {
+            strcpy(cpf_cliente,cpf);
+            cin.ignore();
+            le_string("\nInsira o nome do cliente: ", nome, MAX_NOME);
+
+            while (true) {
+                le_string("Insira a data de nascimento (DD/MM/AAAA): ", nascimento, MAX_NASCIMENTO);
+                // Checa se o formato é exatamente DD/MM/AAAA
+                if (strlen(nascimento) == 10 &&
+                    nascimento[0] >= '0' && nascimento[0] <= '9' &&
+                    nascimento[1] >= '0' && nascimento[1] <= '9' &&
+                    nascimento[2] == '/' &&
+                    nascimento[3] >= '0' && nascimento[3] <= '9' &&
+                    nascimento[4] >= '0' && nascimento[4] <= '9' &&
+                    nascimento[5] == '/' &&
+                    nascimento[6] >= '0' && nascimento[6] <= '9' &&
+                    nascimento[7] >= '0' && nascimento[7] <= '9' &&
+                    nascimento[8] >= '0' && nascimento[8] <= '9' &&
+                    nascimento[9] >= '0' && nascimento[9] <= '9') {
+
+                    int dia = (nascimento[0]-'0')*10 + (nascimento[1]-'0');
+                    int mes = (nascimento[3]-'0')*10 + (nascimento[4]-'0');
+                    int ano = (nascimento[6]-'0')*1000 + (nascimento[7]-'0')*100 +
+                            (nascimento[8]-'0')*10 + (nascimento[9]-'0');
+
+                    // Validação simples de dia/mês/ano (sem ano bissexto)
+                    int diasNoMes[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+                    if (
+                        ano >= 1900 && ano <= 2100 &&
+                        mes >= 1 && mes <= 12 &&
+                        dia >= 1 && dia <= diasNoMes[mes-1]
+                    ) {
+                        cout << "Data válida: " << nascimento << endl;
+                        break;
+                    }
+                }
+                cout << "Entrada inválida, tente novamente." << endl;
+            }
+
+            while (true) {
+                le_string("\nInsira o telefone: (8 Digitos) ", telefone, MAX_TELEFONE);
+                // Verifica se tem exatamente 8 caracteres e todos são dígitos
+                if (strlen(telefone) == 8 &&
+                    telefone[0] >= '0' && telefone[0] <= '9' &&
+                    telefone[1] >= '0' && telefone[1] <= '9' &&
+                    telefone[2] >= '0' && telefone[2] <= '9' &&
+                    telefone[3] >= '0' && telefone[3] <= '9' &&
+                    telefone[4] >= '0' && telefone[4] <= '9' &&
+                    telefone[5] >= '0' && telefone[5] <= '9' &&
+                    telefone[6] >= '0' && telefone[6] <= '9' &&
+                    telefone[7] >= '0' && telefone[7] <= '9'
+                ) {
+                    cout << "Telefone válido: " << telefone << endl;
+                    break;
+                }
+                cout << "Telefone inválido! Digite exatamente 8 dígitos." << endl;
+            }
+
+            le_string("\nInsira o endereço: ", endereco, MAX_ENDERECO);
+            le_forma_pagamento(formaPagamento);
+
+            char respostaVip; // Variável separada para a resposta S/N
+
+            while (true) {
+                cout << "Cliente Possui cartão VIP? (S/N): ";
+                cin >> respostaVip;
+                cin.ignore(); // Limpa o buffer após ler respostaVip
+
+                if (respostaVip == 'S' || respostaVip == 's') {
+                    cout << "Insira o Número do Cartão VIP: ";
+                    cin.getline(cartaoVip, 50);
+                    break;
+                } else if (respostaVip == 'N' || respostaVip == 'n') {
+                    strcpy(cartaoVip, "Nenhum");
+                    break;
+                } else {
+                    cout << "Entrada invalida, tente novamente" << endl;
+                }
+            }
+        }
+        void imprime_dados() {
+            cout << "\n\nNome: " << nome
+                 << ", Nascimento: " << nascimento
+                 << ", Telefone: " << telefone
+                 << ", Endereço: " << endereco
+                 << "\nForma de Pagamento: " << formaPagamento
+                 << ", CPF: " << cpf_cliente
+                 << ", Número Cartão VIP: " << cartaoVip;
+        }
+        void imprime_dados_VIP() {
+            if (strcmp(cartaoVip, "Nenhum") != 0) {
+                imprime_dados() ;
+            }
+        }
+    };
+
+    class ESTADIA {
+    public:
+        char cpfCliente[MAX_CPF];
+        double valorDiaria;
+        double diarias;
+        int mes;
+        char formaPagamento[MAX_PAGAMENTO];
+        char servicosContratados[MAX_SERVICOS_POR_ESTADIA][MAX_CODIGO];
+        int qtdServicosContratados;
+
+        // ALTERADO: A função agora recebe os dados do cliente em vez de pedi-los.
+        // Ela se concentra apenas em pedir os dados que são específicos da estadia.
+        void insere_dados(const char* cpfDoCliente, const char* pagamentoDoCliente) {
+            // Copia os dados recebidos do GERENCIADOR
+            strcpy(cpfCliente, cpfDoCliente);
+            strcpy(formaPagamento, pagamentoDoCliente);
+
+            // Pede apenas os dados que pertencem à estadia
+            verifica_numero("Insira o valor da diária: R$ ", valorDiaria);
+            verifica_numero("Insira a quantidade de dias da estadia: ", diarias);
+            while (true) {
+                cout << "Insira o mês da estadia (1-12): ";
+                cin >> this->mes;
+
+                // Verifica se a entrada foi um número e se está no intervalo válido (1 a 12)
+                if (cin.fail() || this->mes < 1 || this->mes > 12) {
+                    cout << "Mês inválido. Por favor, digite um número entre 1 e 12.\n";
+                    cin.clear(); // Limpa o estado de erro do cin
+                    cin.ignore(10000, '\n'); // Descarta a entrada incorreta
+                } else {
+                    cin.ignore(10000, '\n'); // Limpa o buffer em caso de sucesso
+                    break; // Sai do loop se o mês for válido
+                }
+            }
+
+            qtdServicosContratados = 0; // Inicializa a lista de serviços da estadia
+        }
+
+        // O resto da classe continua igual...
+        void inserirServico(const char* codigoServico) {
+            if (qtdServicosContratados < MAX_SERVICOS_POR_ESTADIA) {
+                strcpy(servicosContratados[qtdServicosContratados], codigoServico);
+                qtdServicosContratados++;
+                cout << "\nServico adicionado com sucesso a estadia!\n";
+            } else {
+                cout << "\nLimite de servicos para esta estadia foi atingido!\n";
+            }
+        }
+
+        void imprime_dados() {
+            cout << "\nCPF do Cliente: " << cpfCliente
+                 << ", Valor Diaria: R$ " << valorDiaria
+                 << ", Total de dias da estadia: " << diarias
+                 << ", Mês: " << mes // Adicionada a impressão do mês
+                 << ", Forma de Pagamento: " << formaPagamento;
+            cout << "\nServicos Contratados: ";
+            if (qtdServicosContratados == 0) {
+                cout << "Nenhum";
+            } else {
+                for (int i = 0; i < qtdServicosContratados; i++) {
+                    cout << servicosContratados[i] << " ";
+                }
+            }
+        }
+    };
+
+    class FUNCIONARIO {
+    public:
+        char nome[MAX_NOME];
+        char cpf[MAX_CPF];
+
+        // NOVO: Lista de serviços que o funcionário PODE realizar
+        char servicosHabilitados[MAX_SERVICOS_POR_FUNC][MAX_CODIGO];
+        int qtdServicosHabilitados;
+
+        // ALTERADO: Esta lista agora guarda apenas o histórico de trabalho
+        char servicosRealizados[MAX_SERVICOS_POR_FUNC][MAX_CODIGO];
+        int qtdServicosRealizados;
+
+        // ALTERADO: insere_dados agora inicializa as duas listas
+        void insere_dados(const char* cpf_param) {
+            strcpy(cpf, cpf_param); // Copia o CPF passado como parâmetro
+            fflush(stdin);
+            le_string("Insira o Nome do funcionário: ", nome, MAX_NOME);
+            qtdServicosRealizados = 0;  // Inicia sem nenhum serviço realizado
+            qtdServicosHabilitados = 0; // Inicia sem nenhum serviço habilitado
+        }
+
+        // NOVO: Função para adicionar uma nova habilidade ao funcionário
+        void adicionarServicoHabilitado(const char* codigoServico) {
+            if (qtdServicosHabilitados < MAX_SERVICOS_POR_FUNC) {
+                strcpy(servicosHabilitados[qtdServicosHabilitados], codigoServico);
+                qtdServicosHabilitados++;
+                cout << "\nFuncionário agora está habilitado para o serviço " << codigoServico << "!\n";
+            } else {
+                cout << "\nLimite de habilidades para este funcionário foi atingido!\n";
+            }
+        }
+
+        // Função para registrar um serviço que foi efetivamente feito
+        void servicosRealizadosFunc(const char* codigoServico) {
+            if (qtdServicosRealizados < MAX_SERVICOS_POR_FUNC) {
+                strcpy(servicosRealizados[qtdServicosRealizados], codigoServico);
+                qtdServicosRealizados++;
+            }
+        }
+
+        // ALTERADO: imprime_dados agora mostra as duas listas
+        void imprime_dados() {
+            cout << "\n\nNome: " << nome;
+            cout << "\nCPF: " << cpf;
+
+            cout << "\nServiços Habilitados: ";
+            if (qtdServicosHabilitados == 0) {
+                cout << "Nenhum";
+            } else {
+                for (int i = 0; i < qtdServicosHabilitados; i++) {
+                    cout << servicosHabilitados[i] << " ";
+                }
+            }
+
+            cout << "\nServiços Realizados (Histórico): ";
+            if (qtdServicosRealizados == 0) {
+                cout << "Nenhum";
+            } else {
+                for (int i = 0; i < qtdServicosRealizados; i++) {
+                    cout << servicosRealizados[i] << " ";
+                }
+            }
+        }
+    };
+
+    class SERVICO {
+    public:
+        char codigo[MAX_CODIGO];
+        char cpfFuncionario[MAX_CPF];
+        double valorCusto;
+        double valorPrestacao;
+        char executadoPor[MAX_NOME];
+
+        void insere_dados(const char* cpf, char* codigo_novo) {
+            strcpy(cpfFuncionario, cpf);
+
+            strcpy(codigo, codigo_novo);
+
+            while (true) {
+                verifica_numero("Insira o valor do Serviço para o cliente: ", valorPrestacao);
+                verifica_numero("Insira o valor de custo para o hotel: ", valorCusto);
+
+                if (valorCusto <= valorPrestacao) {
+                    break;
+                } else {
+                    cout << "\nERRO: O valor de Custo (R$" << valorCusto
+                         << ") não pode ser maior que o valor do Serviço (R$" << valorPrestacao
+                         << ").\nPor favor, insira os valores novamente.\n\n";
+                }
+            }
+        }
+
+        void imprime_dados() {
+            cout << "\nCódigo: " << codigo
+                 << ", Funcionario Responsavel: " << cpfFuncionario
+                 << ", Valor Custo: " << valorCusto
+                 << ", Valor Prestacao: " << valorPrestacao;
+            }
+
+        double calcularLucro() {
+            return valorPrestacao - valorCusto;
+        }
+    };
+
+    class GERENCIADOR {
+    public:
+        CLIENTE clientes[MAX_REGISTROS];
+        int qtd_clientes=0;
+
+        ESTADIA estadias[MAX_REGISTROS];
+        int qtd_estadias=0;
+
+        SERVICO servicos[MAX_REGISTROS];
+        int qtd_servicos=0;
+
+        FUNCIONARIO funcionarios[MAX_REGISTROS];
+        int qtd_funcionarios=0;
+
+        void verificaCodigo(const char* mensagem, char* destino, int tamanhoEsperado) {
+        while (true) {
+            // Flag para verificar se o código inserido já existe.
+            // É reiniciada a cada nova tentativa do usuário.
+            bool jaExiste = false;
+
+            // Pede ao usuário para inserir o código
+            le_string(mensagem, destino, tamanhoEsperado);
+
+            // Percorre a lista de serviços já cadastrados
+            for (int i = 0; i < qtd_servicos; i++) {
+                // Compara o código inserido com os códigos existentes
+                if (strcmp(destino, servicos[i].codigo) == 0) {
+                    cout << "\nERRO: Este código de serviço já está em uso. Tente novamente.\n";
+                    jaExiste = true; // ATUALIZA A FLAG! Este é o passo crucial.
+                    break;           // Otimização: Sai do loop 'for' pois já encontramos uma duplicata.
+                }
+            }
+
+            // Se, após verificar toda a lista, a flag 'jaExiste' continuar como 'false',
+            // significa que o código é único e podemos sair do loop 'while'.
+            if (!jaExiste) { // '!jaExiste' é o mesmo que 'jaExiste == false'
+                break;
+            }
+        }
+    }
+
+        void cpfExiste(const char* destino, bool &jaExiste) {
+                for(int i=0; qtd_clientes>i; i++){
+                    bool jaExisteCliente = (strcmp(destino,clientes[i].cpf_cliente)==0);
+                    if(jaExisteCliente){
+                            jaExiste = true;
+                            break;
+                    }
+                }
+                for(int i=0; qtd_funcionarios>i; i++){
+                    bool jaExisteFunc = (strcmp(destino,funcionarios[i].cpf)==0);
+                    if(jaExisteFunc){
+                            jaExiste = true;
+                            break;
+                    }
+                }
+                if(jaExiste){
+                    cout << "CPF já Cadastrado! Tente Novamente!\n";
+                }
+        }
+
+        void menuCadastrar() {
+            int opcao_cad;
+            do {
+                cout << "\n--- Menu de Cadastros ---\n"; // Título simplificado
+                cout << "1. Cadastrar Cliente\n";
+                cout << "2. Cadastrar Funcionário\n";
+                cout << "3. Cadastrar Serviço\n";
+                cout << "4. Cadastrar Estadia\n";
+                cout << "5. Voltar ao Menu Principal\n"; // Voltar agora é a opção 5
+                cout << "Escolha uma opcao: ";
+                cin >> opcao_cad;
+                cin.ignore();
+
+                if (opcao_cad == 1) {
+                    cadastrarCliente();
+                } else if (opcao_cad == 2) {
+                    cadastrarFuncionario();
+                } else if (opcao_cad == 3) {
+                    cadastrarServico();
+                } else if (opcao_cad == 4) {
+                    cadastrarEstadia();
+                } else if (opcao_cad == 5) {
+                    cout << "Voltando ao menu principal...\n";
+                } else {
+                    cout << "Opção inválida, tente novamente.\n";
+                }
+            } while (opcao_cad != 5);
+        }
+
+        void cadastrarCliente() {
+            char cpf[MAX_CPF];
+            bool jaExiste = false;
+
+            le_cpf("Insira o CPF do cliente: ", cpf);
+            cpfExiste(cpf, jaExiste); // Verifica se o CPF já está em uso
+
+            // Se o CPF não existe, procede com o cadastro
+            if (!jaExiste) {
+                if (qtd_clientes < MAX_REGISTROS) {
+                    clientes[qtd_clientes].insere_dados(cpf);
+                    qtd_clientes++;
+                    cout << "Cliente cadastrado com sucesso!\n";
+                } else {
+                    cout << "Limite de clientes atingido!\n";
+                }
+            }
+            // Se 'jaExiste' for true, a função simplesmente termina e volta ao menu.
+        }
+
+        void cadastrarEstadia() {
+        // Validação 1: Verifica se há espaço para novas estadias.
+        if (qtd_estadias >= MAX_REGISTROS) {
+            cout << "Limite de estadias atingido!\n";
+            return;
+        }
+        // Validação 2: Verifica se existe pelo menos um cliente cadastrado.
+        if (qtd_clientes == 0) {
+            cout << "\nERRO: Nao é possível cadastrar uma estadia, pois não há clientes registrados.\n";
+            return;
+        }
+
+        char cpfBusca[MAX_CPF];
+        cout << "\n--- Cadastrar Nova Estadia ---\n";
+        le_cpf("Digite o CPF do cliente para a estadia: ", cpfBusca);
+
+        // Procura o cliente no sistema
+        int indiceCliente = procurarClientePorCPF(cpfBusca);
+
+        // Validação 3: Verifica se o cliente foi encontrado.
+        if (indiceCliente == -1) {
+            cout << "\nERRO: Cliente com CPF '" << cpfBusca << "' não encontrado. A estadia não pode ser criada.\n";
+            return;
+        }
+
+        // Se o cliente foi encontrado, o processo continua.
+        cout << "Cliente '" << clientes[indiceCliente].nome << "' encontrado.\n";
+
+        // Pega a forma de pagamento padrão do cliente encontrado.
+        const char* pagamentoPadrao = clientes[indiceCliente].formaPagamento;
+        cout << "A forma de pagamento padrão (" << pagamentoPadrao << ") será usada.\n";
+
+        // Chama o novo 'insere_dados', passando as informações do cliente.
+        estadias[qtd_estadias].insere_dados(cpfBusca, pagamentoPadrao);
+
+        qtd_estadias++;
+        cout << "\nEstadia cadastrada com sucesso!\n";
+    }
+
+        void cadastrarServico() {
+            char cpf[MAX_CPF], codigo[MAX_CODIGO];
+            int indiceFuncionario = -1;
+
+            if (qtd_funcionarios == 0) {
+                cout << "\nERRO: Nenhum funcionario cadastrado para associar a um servico.\n";
+                return;
+            }
+
+            cout << "\n--- Cadastrar Novo Serviço ---\n";
+            le_cpf("Digite o CPF do funcionario responsavel pelo serviço: ", cpf);
+
+            indiceFuncionario = procurarFuncionarioPorCPF(cpf);
+
+            if (indiceFuncionario == -1) {
+                cout << "Funcionario com o CPF " << cpf << " não encontrado. O servico nao pode ser cadastrado.\n";
+                return;
+            }
+
+            // Se encontrou o funcionário, continua
+            fflush(stdin);
+            verificaCodigo("Insira o código do novo serviço: ", codigo, MAX_CODIGO);
+
+            if (qtd_servicos < MAX_REGISTROS) {
+                // Passa o CPF e o código para o método de inserção do serviço
+                servicos[qtd_servicos].insere_dados(funcionarios[indiceFuncionario].cpf, codigo);
+
+                // ALTERADO: Habilita automaticamente o funcionário para o serviço que acabou de ser criado.
+                // O serviço é adicionado à lista de 'servicosHabilitados', e não 'servicosRealizados'.
+                funcionarios[indiceFuncionario].adicionarServicoHabilitado(codigo);
+
+                qtd_servicos++;
+                cout << "\nServiço cadastrado com sucesso!\n";
+            } else {
+                cout << "Limite de serviços atingido!\n";
+            }
+        }
+
+        void cadastrarFuncionario() {
+            char cpf[MAX_CPF];
+            bool jaExiste = false;
+
+            le_cpf("Insira o CPF do Funcionario: ", cpf);
+            cpfExiste(cpf, jaExiste); // Verifica se o CPF já está em uso
+
+            // Se o CPF não existe, procede com o cadastro
+            if (!jaExiste) {
+                if (qtd_funcionarios < MAX_REGISTROS) {
+                    funcionarios[qtd_funcionarios].insere_dados(cpf);
+                    qtd_funcionarios++;
+                    cout << "Funcionário cadastrado com sucesso!\n";
+                } else {
+                    cout << "Limite de funcionários atingido!\n";
+                }
+            }
+            // Se 'jaExiste' for true, a função simplesmente termina e volta ao menu.
+        }
+
+        void menuListar() {
+            int opcao_list;
+            do {
+                cout << "\n--- Menu de Listagens ---\n";
+                cout << "1. Listar Clientes\n";
+                cout << "2. Listar Clientes VIP\n";
+                cout << "3. Listar Funcionários\n";
+                cout << "4. Listar Serviços\n";
+                cout << "5. Listar Estadias\n";
+                cout << "6. Voltar ao Menu Principal\n";
+                cout << "Escolha uma opcao: ";
+                cin >> opcao_list;
+                cin.ignore();
+
+                if (opcao_list == 1) {
+                    listarClientes();
+                } else if (opcao_list == 2) {
+                    listarClientesVIP();
+                } else if (opcao_list == 3) {
+                    listarFuncionarios();
+                } else if (opcao_list == 4) {
+                    listarServicos();
+                } else if (opcao_list == 5) {
+                    listarEstadias();
+                } else if (opcao_list == 6) {
+                    cout << "Voltando ao menu principal...\n";
+                } else {
+                    cout << "Opção inválida, tente novamente.\n";
+                }
+            } while (opcao_list != 6);
+        }
+
+        void listarClientes() {
+            cout << "\n--- Lista de Clientes ---";
+            if (qtd_clientes == 0) {
+                cout << "\nNenhum cliente cadastrado.";
+            }
+            for (int i = 0; i < qtd_clientes; i++) {
+                clientes[i].imprime_dados();
+            }
+            cout << "\n--------------------------\n";
+        }
+
+        void listarEstadias() {
+            cout << "\n--- Lista de Estadias ---";
+            if (qtd_estadias == 0) {
+                cout << "\nNenhuma estadia cadastrada.";
+            }
+            for (int i = 0; i < qtd_estadias; i++) {
+                estadias[i].imprime_dados();
+            }
+            cout << "\n-------------------------\n";
+        }
+
+        void listarServicos() {
+            cout << "\n--- Lista de Serviços ---";
+            if (qtd_servicos == 0) {
+                cout << "\nNenhum serviço cadastrado.";
+            }
+            for (int i = 0; i < qtd_servicos; i++) {
+                servicos[i].imprime_dados();
+            }
+            cout << "\n-------------------------\n";
+        }
+
+        void menuProcurar() {
+            int opcao_proc;
+            do {
+                cout << "\n--- Menu de Buscas ---\n";
+                cout << "1. Procurar Cliente por CPF\n";
+                cout << "2. Procurar Funcionário por CPF\n";
+                cout << "3. Procurar Serviço por Código\n";
+                cout << "4. Voltar ao Menu Principal\n";
+                cout << "Escolha uma opcao: ";
+                cin >> opcao_proc;
+                cin.ignore();
+
+                if (opcao_proc == 1) {
+                    procurarClientesCpf();
+                } else if (opcao_proc == 2) {
+                    procurarFuncionariosCpfpralistar();
+                } else if (opcao_proc == 3) {
+                    procurarServicos();
+                } else if (opcao_proc == 4) {
+                    cout << "Voltando ao menu principal...\n";
+                } else {
+                    cout << "Opção inválida, tente novamente.\n";
+                }
+            } while (opcao_proc != 4);
+        }
+
+        void procurarClientesCpf() {
+            char cpf_cliente[MAX_CPF], aux[MAX_CPF];
+            bool encontrei=false;
+            cout << "\n--- Procurar de Clientes ---";
+            if (qtd_clientes == 0) {
+                cout << "\nNenhum cliente cadastrado.";
+                cout << "\n--------------------------\n";
+                return;
+            }
+            le_cpf("\nDigite o CPF a ser procurado: ", cpf_cliente);
+            strlwr(cpf_cliente);
+            for (int i = 0; i < qtd_clientes; i++) {
+                strcpy(aux,clientes[i].cpf_cliente);
+                strlwr(aux);
+                if(strcmp(cpf_cliente,aux)==0){
+                    clientes[i].imprime_dados();
+                    encontrei=true;
+                    break;
+                }
+            }
+            if(encontrei==false){
+                cout<<"\nUsuario nao encontrado";
+            }
+            cout << "\n--------------------------\n";
+        }
+
+        void procurarServicos() {
+            char codigoBusca[MAX_CODIGO];
+            int indiceServico;
+            cout << "\n--- Procurar Serviços ---";
+            if (qtd_servicos == 0) {
+                cout << "\nNenhum Serviço cadastrado.";
+                cout << "\n--------------------------\n";
+                return;
+            }
+            fflush(stdin);
+            le_string("\nDigite o codigo do serviço a ser procurado: ", codigoBusca, MAX_CODIGO);
+
+            indiceServico = procurarServicoPorCodigo(codigoBusca);
+
+            if(indiceServico != -1) {
+                servicos[indiceServico].imprime_dados();
+            } else {
+                cout<<"\nServiço nao encontrado";
+            }
+            cout << "\n--------------------------\n";
+        }
+
+        void procurarFuncionariosCpf(char cpf[MAX_CPF],char aux[MAX_CPF],bool &encontrei) {
+            for (int i = 0; i < qtd_funcionarios; i++) {
+                strcpy(aux,funcionarios[i].cpf);
+                strlwr(aux);
+                if(strcmp(cpf,aux)==0){
+                    encontrei=true;
+                    break;
+                }
+            }
+            if(encontrei==false){
+                cout<<"\nFuncionário nao encontrado";
+            }
+        }
+
+        void listarFuncionarios() {
+            cout << "\n--- Lista de Funcionários ---";
+            if (qtd_funcionarios == 0) {
+                cout << "\nNenhum funcionário cadastrado.";
+            }
+            for (int i = 0; i < qtd_funcionarios; i++) {
+                funcionarios[i].imprime_dados();
+            }
+            cout << "\n-----------------------------\n";
+        }
+
+        void listarClientesVIP() {
+            cout << "\n--- Lista de Clientes VIP---";
+            if (qtd_clientes == 0) {
+                cout << "\nNenhum cliente cadastrado.";
+            }
+            int contVip = 0;
+            for (int i = 0; i < qtd_clientes; i++) {
+                if (strcmp(clientes[i].cartaoVip, "Nenhum") != 0) {
+                    clientes[i].imprime_dados_VIP();
+                    contVip++;
+                }
+            }
+            if (contVip == 0 && qtd_clientes > 0) {
+                cout << "\nNenhum cliente VIP encontrado.";
+            }
+            cout << "\n--------------------------\n";
+        }
+
+        void inserirServicoEstadia() {
+            // 1. VERIFICAR SE EXISTEM ESTADIAS E SERVIÇOS
+            if (qtd_estadias == 0 || qtd_servicos == 0) {
+                cout << "\nERRO: E necessario ter pelo menos uma estadia e um servico cadastrado.\n";
+                return;
+            }
+
+            char cpfBusca[MAX_CPF];
+            char codigoBusca[MAX_CODIGO];
+            int indiceEstadia, indiceServico, indiceFuncionario; // NOVO: Adicionado indiceFuncionario
+
+            // 2. PROCURAR UMA ESTADIA
+            cout << "\n--- Adicionar Servico a uma Estadia ---";
+            le_cpf("\nDigite o CPF do cliente da estadia: ", cpfBusca);
+
+            indiceEstadia = procurarEstadiaPorCPF(cpfBusca);
+
+            if (indiceEstadia == -1) {
+                cout << "\nEstadia nao encontrada para o CPF informado.\n";
+                return;
+            }
+
+            cout << "\nEstadia encontrada:";
+            estadias[indiceEstadia].imprime_dados();
+            cout << "\n----------------------------------\n";
+
+            fflush(stdin);
+            le_string("\nDigite o codigo do servico que deseja adicionar: ", codigoBusca, MAX_CODIGO);
+
+            indiceServico = procurarServicoPorCodigo(codigoBusca);
+
+            if (indiceServico == -1) {
+                cout << "\nServico nao encontrado com o codigo informado.\n";
+                return;
+            }
+
+            cout << "\nServico encontrado:";
+            servicos[indiceServico].imprime_dados();
+
+            // NOVO: PROCURAR O FUNCIONÁRIO ASSOCIADO AO SERVIÇO
+            indiceFuncionario = procurarFuncionarioPorCPF(servicos[indiceServico].cpfFuncionario);
+
+        bool habilitado = false;
+        for (int i = 0; i < funcionarios[indiceFuncionario].qtdServicosHabilitados; i++) {
+            if (strcmp(servicos[indiceServico].codigo, funcionarios[indiceFuncionario].servicosHabilitados[i]) == 0) {
+                habilitado = true;
+                break;
+            }
+        }
+
+        if (!habilitado) {
+            cout << "\nERRO: Operação cancelada. O funcionário " << funcionarios[indiceFuncionario].nome
+                 << " não está habilitado para realizar o serviço '" << servicos[indiceServico].codigo << "'.\n";
+            return; // Interrompe a função
+        }
+
+
+        // Se passou na validação, o resto do código continua como antes...
+        cout << "\nFuncionario responsavel encontrado e habilitado:";
+        funcionarios[indiceFuncionario].imprime_dados();
+        cout << "\n----------------------------------\n";
+
+        char resposta;
+        cout << "\nDeseja adicionar o servico '" << servicos[indiceServico].codigo
+             << "' a estadia do cliente CPF '" << estadias[indiceEstadia].cpfCliente << "'? (S/N): ";
+        cin >> resposta;
+        cin.ignore();
+
+        if (resposta == 'S' || resposta == 's') {
+            estadias[indiceEstadia].inserirServico(servicos[indiceServico].codigo);
+
+            // Adiciona ao HISTÓRICO de serviços realizados pelo funcionário
+            if (indiceFuncionario != -1) {
+                funcionarios[indiceFuncionario].servicosRealizadosFunc(servicos[indiceServico].codigo);
+            }
+        } else {
+            cout << "\nOperacao cancelada.\n";
+        }
+    }
+
+        int procurarClientePorCPF(const char* cpfBusca) {
+            char aux[MAX_CPF];
+            char cpfBuscaLower[MAX_CPF];
+            strcpy(cpfBuscaLower, cpfBusca);
+            strlwr(cpfBuscaLower); // Garante que a busca não diferencia maiúsculas/minúsculas
+
+            for (int i = 0; i < qtd_clientes; i++) {
+                strcpy(aux, clientes[i].cpf_cliente);
+                strlwr(aux);
+                if (strcmp(cpfBuscaLower, aux) == 0) {
+                    return i; // Retorna o índice do cliente encontrado
+                }
+            }
+            return -1; // Retorna -1 se não encontrou
+        }
+
+        int procurarEstadiaPorCPF(char cpfBusca[]) {
+            char aux[MAX_CPF];
+            strlwr(cpfBusca); // Garante que a busca não diferencia maiúsculas/minúsculas
+            for (int i = 0; i < qtd_estadias; i++) {
+                strcpy(aux, estadias[i].cpfCliente);
+                strlwr(aux);
+                if (strcmp(cpfBusca, aux) == 0) {
+                    return i; // Retorna o índice da estadia encontrada
+                }
+            }
+            return -1; // Retorna -1 se não encontrou
+        }
+
+        int procurarServicoPorCodigo(char codigoBusca[]) {
+            char aux[MAX_CODIGO];
+            strlwr(codigoBusca);
+            for (int i = 0; i < qtd_servicos; i++) {
+                strcpy(aux, servicos[i].codigo);
+                strlwr(aux);
+                if (strcmp(codigoBusca, aux) == 0) {
+                    return i; // Retorna o índice do serviço encontrado
+                }
+            }
+            return -1; // Retorna -1 se não encontrou
+        }
+
+        int procurarFuncionarioPorCPF(char cpfBusca[]) {
+            char aux[MAX_CPF];
+            strlwr(cpfBusca);
+            for (int i = 0; i < qtd_funcionarios; i++) {
+                strcpy(aux, funcionarios[i].cpf);
+                strlwr(aux);
+                if (strcmp(cpfBusca, aux) == 0) {
+                    return i; // Retorna o índice do funcionário encontrado
+                }
+            }
+            return -1; // Retorna -1 se não encontrou
+        }
+
+        void gerarRelatorioMensal() {
+            cout << "\n--- Relatório Mensal do Hotel ---\n";
+
+            // Etapa 1: Verificar se existem estadias cadastradas.
+            // O relatório agora é baseado em serviços utilizados nas estadias.
+            if (qtd_estadias == 0) {
+                cout << "Nenhuma estadia foi registrada para gerar um relatório.\n";
+                return;
+            }
+            int mesRelatorio;
+            while (true) {
+                cout << "Digite o mês para o qual deseja gerar o relatório (1-12): ";
+                cin >> mesRelatorio;
+                if (cin.fail() || mesRelatorio < 1 || mesRelatorio > 12) {
+                    cout << "Mês inválido. Por favor, digite um número entre 1 e 12.\n";
+                    cin.clear();
+                    cin.ignore(10000, '\n');
+                } else {
+                    cin.ignore(10000, '\n');
+                    break;
+                }
+            }
+        // A estrutura de consolidação continua a mesma
+        struct SERVICOCONSOLIDADO {
+            char codigo[MAX_CODIGO];
+            char descricao[MAX_NOME];
+            double custoTotal;
+            double valorTotal;
+            int quantidade;
+        };
+        SERVICOCONSOLIDADO servicosConsolidados[MAX_REGISTROS];
+        int qtd_servicos_consolidados = 0;
+
+        // ALTERADO: O loop agora tem um filtro para o mês
+        for (int i = 0; i < qtd_estadias; i++) {
+            // SÓ PROCESSA A ESTADIA SE ELA PERTENCER AO MÊS DO RELATÓRIO
+            if (estadias[i].mes == mesRelatorio) {
+
+                // Para cada estadia do mês correto, iteramos sobre os serviços
+                for (int k = 0; k < estadias[i].qtdServicosContratados; k++) {
+                    char* codigoServicoDaEstadia = estadias[i].servicosContratados[k];
+                    int indiceServico = procurarServicoPorCodigo(codigoServicoDaEstadia);
+
+                    if (indiceServico == -1) {
+                        cout << "\nALERTA: Serviço '" << codigoServicoDaEstadia << "' não encontrado.\n";
+                        continue;
+                    }
+
+                    bool encontrado = false;
+                    for (int j = 0; j < qtd_servicos_consolidados; j++) {
+                        if (strcmp(servicos[indiceServico].codigo, servicosConsolidados[j].codigo) == 0) {
+                            servicosConsolidados[j].quantidade++;
+                            servicosConsolidados[j].custoTotal += servicos[indiceServico].valorCusto;
+                            servicosConsolidados[j].valorTotal += servicos[indiceServico].valorPrestacao;
+                            encontrado = true;
+                            break;
+                        }
+                    }
+
+                    if (!encontrado) {
+                        strcpy(servicosConsolidados[qtd_servicos_consolidados].codigo, servicos[indiceServico].codigo);
+                        strcpy(servicosConsolidados[qtd_servicos_consolidados].descricao, servicos[indiceServico].executadoPor);
+                        servicosConsolidados[qtd_servicos_consolidados].custoTotal = servicos[indiceServico].valorCusto;
+                        servicosConsolidados[qtd_servicos_consolidados].valorTotal = servicos[indiceServico].valorPrestacao;
+                        servicosConsolidados[qtd_servicos_consolidados].quantidade = 1;
+                        qtd_servicos_consolidados++;
+                    }
+                }
+            }
+        }
+
+        // ALTERADO: A mensagem de feedback agora é específica para o mês
+        if (qtd_servicos_consolidados == 0) {
+            cout << "\nNenhum serviço foi consumido nas estadias registradas para o mês " << mesRelatorio << ".\n";
+            cout << "------------------------------------------------------------\n";
+            return;
+        }
+
+        // O restante da lógica para imprimir a tabela de resultados permanece o mesmo.
+        double custoTotalGeral = 0;
+        double valorTotalGeral = 0;
+        double lucroTotalGeral = 0;
+
+        cout << "\n--- Relatório de Serviços Prestados para o Mês: " << mesRelatorio << " ---\n";
+        cout << "------------------------------------------------------------\n";
+        cout << "Código  Descrição        Qtd  Custo Total  Valor Total  Lucro\n";
+        cout << "------------------------------------------------------------\n";
+
+        for (int i = 0; i < qtd_servicos_consolidados; i++) {
+            double lucro = servicosConsolidados[i].valorTotal - servicosConsolidados[i].custoTotal;
+            printf("%-7s %-17s %-4d R$%-10.2f R$%-10.2f R$%.2f\n",
+                   servicosConsolidados[i].codigo,
+                   servicosConsolidados[i].descricao,
+                   servicosConsolidados[i].quantidade,
+                   servicosConsolidados[i].custoTotal,
+                   servicosConsolidados[i].valorTotal,
+                   lucro);
+            custoTotalGeral += servicosConsolidados[i].custoTotal;
+            valorTotalGeral += servicosConsolidados[i].valorTotal;
+            lucroTotalGeral += lucro;
+        }
+
+        cout << "------------------------------------------------------------\n";
+        printf("TOTAIS:                   R$%-10.2f R$%-10.2f R$%.2f\n",
+               custoTotalGeral, valorTotalGeral, lucroTotalGeral);
+        cout << "------------------------------------------------------------\n";
+    }
+
+        void calcularTotalEstadia() {
+            if (qtd_estadias == 0 || qtd_clientes == 0) {
+                cout << "\nERRO: Nenhuma estadia ou cliente cadastrado.\n";
+                return;
+            }
+
+            char cpfBusca[MAX_CPF];
+            le_cpf("\nDigite o CPF do cliente para calcular a estadia: ", cpfBusca);
+            int indiceEstadia = procurarEstadiaPorCPF(cpfBusca);
+            if (indiceEstadia == -1) {
+                cout << "\nEstadia não encontrada para o CPF informado.\n";
+                return;
+            }
+
+            int indiceCliente = -1;
+            for (int i = 0; i < qtd_clientes; i++) {
+                if (strcmp(clientes[i].cpf_cliente, estadias[indiceEstadia].cpfCliente) == 0) {
+                    indiceCliente = i;
+                    break;
+                }
+            }
+            if (indiceCliente == -1) {
+                cout << "\nCliente não encontrado.\n";
+                return;
+            }
+            // Verificar se é VIP
+            bool isVip = (strcmp(clientes[indiceCliente].cartaoVip, "Nenhum") != 0);
+            // Calcular total dos serviços
+            double totalServicos = 0;
+            for (int i = 0; i < estadias[indiceEstadia].qtdServicosContratados; i++) {
+                for (int j = 0; j < qtd_servicos; j++) {
+                    if (strcmp(estadias[indiceEstadia].servicosContratados[i], servicos[j].codigo) == 0) {
+                        totalServicos += isVip ? servicos[j].valorPrestacao * 0.9 : servicos[j].valorPrestacao;
+                        break;
+                    }
+                }
+            }
+
+            // Total final (diária + serviços com desconto se VIP)
+            double totalFinal = estadias[indiceEstadia].valorDiaria * estadias[indiceEstadia].diarias + totalServicos;
+
+            cout << "\n--- Resumo da Estadia ---\n";
+            cout << "Cliente: " << clientes[indiceCliente].nome << endl;
+            cout << "CPF: " << clientes[indiceCliente].cpf_cliente << endl;
+            if (isVip) {
+                cout << "Tipo: Cliente VIP (10% de desconto nos serviços)\n";
+            } else {
+                cout << "Tipo: Cliente regular\n";
+            }
+            cout << "Valor da diária: R$" << estadias[indiceEstadia].valorDiaria << endl;
+            cout << "Total dos serviços: R$" << totalServicos << (isVip ? " (com desconto)" : "") << endl;
+            cout  << "Quantidade de dias hospedado: " << estadias[indiceEstadia].diarias << endl;
+            cout << "--------------------------------\n";
+            cout << "TOTAL A PAGAR: R$" << totalFinal << endl;
+            cout << "--------------------------------\n";
+        }
+
+        void cadastroTeste() {
+            cout << "\n--- Iniciando Cadastro de Teste ---\n";
+
+            // --- Cadastrando 3 Clientes ---
+            // Cliente 1
+            strcpy(clientes[qtd_clientes].cpf_cliente, "11111111111");
+            strcpy(clientes[qtd_clientes].nome, "Joao Silva");
+            strcpy(clientes[qtd_clientes].nascimento, "10/05/1990");
+            strcpy(clientes[qtd_clientes].telefone, "3199887766");
+            strcpy(clientes[qtd_clientes].endereco, "Serra do Leme Frio");
+            strcpy(clientes[qtd_clientes].formaPagamento, "Cartao de Credito");
+            strcpy(clientes[qtd_clientes].cartaoVip, "VIP12345"); // Cliente VIP
+            qtd_clientes++;
+
+            // Cliente 2
+            strcpy(clientes[qtd_clientes].cpf_cliente, "22222222222");
+            strcpy(clientes[qtd_clientes].nome, "Maria Oliveira");
+            strcpy(clientes[qtd_clientes].nascimento, "22/08/1985");
+            strcpy(clientes[qtd_clientes].telefone, "31988776655");
+            strcpy(clientes[qtd_clientes].endereco, "Pontal de Matheus Neves");
+            strcpy(clientes[qtd_clientes].formaPagamento, "PIX");
+            strcpy(clientes[qtd_clientes].cartaoVip, "Nenhum"); // Cliente não VIP
+            qtd_clientes++;
+
+            // Cliente 3
+            strcpy(clientes[qtd_clientes].cpf_cliente, "33333333333");
+            strcpy(clientes[qtd_clientes].nome, "Pedro Souza");
+            strcpy(clientes[qtd_clientes].nascimento, "15/11/2000");
+            strcpy(clientes[qtd_clientes].telefone, "31977665544");
+            strcpy(clientes[qtd_clientes].endereco, "Montes de Ribeirão Leopoldo");
+            strcpy(clientes[qtd_clientes].formaPagamento, "Dinheiro");
+            strcpy(clientes[qtd_clientes].cartaoVip, "VIP98765"); // Cliente VIP
+            qtd_clientes++;
+            cout << "3 clientes de teste cadastrados com sucesso!\n";
+
+            // --- Cadastrando 3 Funcionários ---
+            // Funcionário 1
+            strcpy(funcionarios[qtd_funcionarios].cpf, "44444444444");
+            strcpy(funcionarios[qtd_funcionarios].nome, "Carlos Pereira");
+            funcionarios[qtd_funcionarios].qtdServicosRealizados = 0;
+            qtd_funcionarios++;
+
+            // Funcionário 2
+            strcpy(funcionarios[qtd_funcionarios].cpf, "55555555555");
+            strcpy(funcionarios[qtd_funcionarios].nome, "Ana Costa");
+            funcionarios[qtd_funcionarios].qtdServicosRealizados = 0;
+            qtd_funcionarios++;
+
+            // Funcionário 3
+            strcpy(funcionarios[qtd_funcionarios].cpf, "66666666666");
+            strcpy(funcionarios[qtd_funcionarios].nome, "Lucas Martins");
+            funcionarios[qtd_funcionarios].qtdServicosRealizados = 0;
+            qtd_funcionarios++;
+            cout << "3 funcionarios de teste cadastrados com sucesso!\n";
+
+            // --- Cadastrando 3 Serviços ---
+        // Serviço 1
+        strcpy(servicos[qtd_servicos].codigo, "S001");
+        strcpy(servicos[qtd_servicos].cpfFuncionario, "44444444444"); // Responsável: Carlos
+        servicos[qtd_servicos].valorCusto = 50.0;
+        servicos[qtd_servicos].valorPrestacao = 120.0;
+        strcpy(servicos[qtd_servicos].executadoPor, "Carlos Pereira");
+        qtd_servicos++;
+
+        // Serviço 2
+        strcpy(servicos[qtd_servicos].codigo, "S002");
+        strcpy(servicos[qtd_servicos].cpfFuncionario, "55555555555"); // Responsável: Ana
+        servicos[qtd_servicos].valorCusto = 25.0;
+        servicos[qtd_servicos].valorPrestacao = 60.0;
+        strcpy(servicos[qtd_servicos].executadoPor, "Ana Costa");
+        qtd_servicos++;
+
+        // Serviço 3
+        strcpy(servicos[qtd_servicos].codigo, "S003");
+        strcpy(servicos[qtd_servicos].cpfFuncionario, "66666666666"); // Responsável: Lucas
+        servicos[qtd_servicos].valorCusto = 80.0;
+        servicos[qtd_servicos].valorPrestacao = 150.0;
+        strcpy(servicos[qtd_servicos].executadoPor, "Lucas Martins");
+        qtd_servicos++;
+        cout << "3 servicos de teste cadastrados com sucesso!\n";
+
+        cout << "Habilitando funcionários para os serviços de teste...\n";
+        // Habilita Carlos (índice 0) para o serviço S001
+        funcionarios[0].adicionarServicoHabilitado("S001");
+
+        // Habilita Ana (índice 1) para o serviço S002
+        funcionarios[1].adicionarServicoHabilitado("S002");
+
+        // Habilita Lucas (índice 2) para o serviço S003
+        funcionarios[2].adicionarServicoHabilitado("S003");
+
+        cout << "\n--- Cadastro de Teste Finalizado ---\n\n";
+    }
+
+        void procurarFuncionariosCpfpralistar() {
+        char cpf_funcionario[MAX_CPF];
+        bool encontrei = false;
+        cout << "\n--- Procurar Funcionário e Calcular Lucro ---\n";
+        if (qtd_funcionarios == 0) {
+            cout << "\nNenhum funcionário cadastrado.\n";
+            cout << "-------------------------------------------\n";
+            return;
+        }
+
+        le_cpf("Digite o CPF a ser procurado: ", cpf_funcionario);
+        strlwr(cpf_funcionario);
+
+        for (int i = 0; i < qtd_funcionarios; i++) {
+            char aux[MAX_CPF];
+            strcpy(aux, funcionarios[i].cpf);
+            strlwr(aux);
+
+            if (strcmp(cpf_funcionario, aux) == 0) {
+                funcionarios[i].imprime_dados();
+
+                double lucroTotalFuncionario = 0.0;
+
+                for (int j = 0; j < funcionarios[i].qtdServicosRealizados; j++) {
+                    const char* codigoServicoFeito = funcionarios[i].servicosRealizados[j];
+                    for (int k = 0; k < qtd_servicos; k++) {
+                        if (strcmp(codigoServicoFeito, servicos[k].codigo) == 0) {
+                            lucroTotalFuncionario += servicos[k].calcularLucro();
+                            break;
+                        }
+                    }
+                }
+                printf("\n\n>> Lucro Total Gerado pelo Funcionário: R$ %.2f", lucroTotalFuncionario);
+
+                encontrei = true;
+                break;
+            }
+        }
+
+        if (!encontrei) {
+            cout << "\nFuncionário não encontrado.";
+        }
+        cout << "\n-------------------------------------------\n";
+    }
+
+        void deletar(){
+        int opcao_del;
+            do{
+            cout << "\nMenu Principal:\n";
+            cout << "1. Deletar Cliente\n";
+            cout << "2. Deletar Estadia\n";
+            cout << "3. Deletar Servico\n";
+            cout << "4. Deletar Funcionario\n";
+            cout << "5. Voltar ao Menu Principal\n";
+            cout << "Escolha uma opcao: ";
+            cin >> opcao_del;
+            cin.ignore(); // Limpa o buffer após ler opcao
+            if (opcao_del == 1) {
+                deleteCliente();
+            } else if (opcao_del == 2) {
+                deleteEstadia();
+            } else if (opcao_del == 3) {
+                deleteServico();
+            } else if (opcao_del == 4) {
+                deleteFuncionario();
+            } else if (opcao_del == 5) {
+                cout << "Voltando ao menu principal...\n";
+            } else {
+                cout << "Opção inválida, tente novamente.\n";
+                cin.clear();
+                cin.ignore();
+            }
+            } while (opcao_del != 5);
+        }
+
+        void deleteCliente() {
+            if (qtd_clientes == 0) {
+                cout << "\nNenhum cliente cadastrado para deletar.\n";
+                return;
+            }
+            char cpf_del[MAX_CPF];
+            bool encontrei = false;
+            int nova_qtd = 0; // Contador para o novo array de clientes
+            cout << "\n--- Deletar Cliente ---\n";
+            le_cpf("Digite o CPF do cliente que deseja deletar: ", cpf_del);
+
+            CLIENTE clientes_temp[MAX_REGISTROS]; // Array temporário para armazenar os clientes mantidos
+            // Itera sobre todos os clientes
+            for (int i = 0; i < qtd_clientes; i++) {
+                // Compara o CPF a ser deletado com o CPF do cliente atual
+                if (strcmp(cpf_del, clientes[i].cpf_cliente) == 0) {
+                    encontrei = true; // Marca que o cliente foi encontrado
+                    // Não copia este cliente para o array temporário, efetivamente deletando-o
+                } else {
+                    clientes_temp[nova_qtd] = clientes[i]; // Mantém o cliente
+                    nova_qtd++;
+                }
+            }
+
+            // Feedback ao usuário
+            if (encontrei) {
+                // Copia os clientes mantidos de volta para o array original
+                for (int i = 0; i < nova_qtd; i++) {
+                    clientes[i] = clientes_temp[i];
+                }
+                qtd_clientes = nova_qtd; // Atualiza a quantidade total de clientes
+                cout << "\nCliente deletado com sucesso!\n";
+            } else {
+                cout << "\nCliente com CPF '" << cpf_del << "' nao foi encontrado.\n";
+            }
+        }
+
+        void deleteEstadia() {
+            if (qtd_estadias == 0) {
+                cout << "\nNenhuma estadia cadastrada para deletar.\n";
+                return;
+            }
+
+            char cpf_del[MAX_CPF];
+            bool encontrei = false;
+            int nova_qtd = 0;
+
+            cout << "\n--- Deletar Estadia ---\n";
+            le_cpf("Digite o CPF associado à estadia que deseja deletar: ", cpf_del);
+
+            ESTADIA estadias_temp[MAX_REGISTROS];
+
+            for (int i = 0; i < qtd_estadias; i++) {
+                if (strcmp(cpf_del, estadias[i].cpfCliente) == 0) {
+                    encontrei = true;
+                } else {
+                    estadias_temp[nova_qtd] = estadias[i];
+                    nova_qtd++;
+                }
+            }
+
+            if (encontrei) {
+                for (int i = 0; i < nova_qtd; i++) {
+                    estadias[i] = estadias_temp[i];
+                }
+                qtd_estadias = nova_qtd;
+                cout << "\nEstadia(s) do CPF '" << cpf_del << "' deletada(s) com sucesso!\n";
+            } else {
+                cout << "\nNenhuma estadia encontrada para o CPF '" << cpf_del << "'.\n";
+            }
+        }
+
+        void deleteServico() {
+            if (qtd_servicos == 0) {
+                cout << "\nNenhum serviço cadastrado para deletar.\n";
+                return;
+            }
+
+            char codigo_del[MAX_CODIGO];
+            bool encontrei = false;
+            int nova_qtd = 0;
+
+            cout << "\n--- Deletar Serviço ---\n";
+            le_string("Digite o código do serviço que deseja deletar: ", codigo_del, MAX_CODIGO);
+
+            SERVICO servicos_temp[MAX_REGISTROS];
+
+            for (int i = 0; i < qtd_servicos; i++) {
+                if (strcmp(codigo_del, servicos[i].codigo) == 0) {
+                    encontrei = true;
+                } else {
+                    servicos_temp[nova_qtd] = servicos[i];
+                    nova_qtd++;
+                }
+            }
+
+            if (encontrei) {
+                for (int i = 0; i < nova_qtd; i++) {
+                    servicos[i] = servicos_temp[i];
+                }
+                qtd_servicos = nova_qtd;
+                cout << "\nServiço deletado com sucesso!\n";
+            } else {
+                cout << "\nServiço com código '" << codigo_del << "' nao foi encontrado.\n";
+            }
+        }
+
+        void deleteFuncionario() {
+            if (qtd_funcionarios == 0) {
+                cout << "\nNenhum funcionário cadastrado para deletar.\n";
+                return;
+            }
+
+            char cpf_del[MAX_CPF];
+            bool encontrei = false;
+            int nova_qtd = 0;
+
+            cout << "\n--- Deletar Funcionário ---\n";
+            le_cpf("Digite o CPF do funcionário que deseja deletar: ", cpf_del);
+
+            FUNCIONARIO funcionarios_temp[MAX_REGISTROS];
+
+            for (int i = 0; i < qtd_funcionarios; i++) {
+                if (strcmp(cpf_del, funcionarios[i].cpf) == 0) {
+                    encontrei = true;
+                } else {
+                    funcionarios_temp[nova_qtd] = funcionarios[i];
+                    nova_qtd++;
+                }
+            }
+
+            if (encontrei) {
+                for (int i = 0; i < nova_qtd; i++) {
+                    funcionarios[i] = funcionarios_temp[i];
+                }
+                qtd_funcionarios = nova_qtd;
+                cout << "\nFuncionário deletado com sucesso!\n";
+            } else {
+                cout << "\nFuncionário com CPF '" << cpf_del << "' nao foi encontrado.\n";
+            }
+        }
+
+    };
+
+    int main() {
+        setlocale(LC_ALL,"Portuguese");
+        GERENCIADOR meuHotel;
+        meuHotel.qtd_clientes = 0;
+        meuHotel.qtd_estadias = 0;
+        meuHotel.qtd_servicos = 0;
+        meuHotel.qtd_funcionarios = 0;
+
+        int opcao;
+
+        do {
+            cout << "\n============== HOTEL ==================\n";
+            cout << "1.  Cadastros\n";
+            cout << "2.  Listagens\n";
+            cout << "3.  Consultas e Buscas\n";
+            cout << "4.  Operações de Estadia\n";
+            cout << "5.  Deletar Registros\n";
+            cout << "6.  Gerar Relatório Mensal\n";
+            cout << "7.  Carregar Dados de Teste\n";
+            cout << "8.  Sair\n";
+            cout << "=========================================\n";
+            cout << "Escolha uma opcao: ";
+
+            cin >> opcao;
+            cin.ignore(); // Limpa o buffer após ler a opção
+
+            if (opcao == 1) {
+                meuHotel.menuCadastrar();
+            } else if (opcao == 2) {
+                meuHotel.menuListar();
+            } else if (opcao == 3) {
+                meuHotel.menuProcurar();
+            } else if (opcao == 4) {
+                int op_estadia;
+                cout << "\n--- Operações de Estadia ---\n";
+                cout << "1. Adicionar Serviço a uma Estadia\n";
+                cout << "2. Calcular Total de uma Estadia\n";
+                cout << "Escolha: ";
+                cin >> op_estadia;
+                cin.ignore();
+                if (op_estadia == 1) {
+                    meuHotel.inserirServicoEstadia();
+                } else if (op_estadia == 2) {
+                    meuHotel.calcularTotalEstadia();
+                } else {
+                    cout << "Opção inválida.\n";
+                }
+            } else if (opcao == 5) {
+                meuHotel.deletar();
+            } else if (opcao == 6) {
+                meuHotel.gerarRelatorioMensal();
+            } else if (opcao == 7) {
+                meuHotel.cadastroTeste();
+            } else if (opcao == 8) {
+                cout << "Saindo do sistema...\n";
+            } else {
+                cout << "Opção inválida, tente novamente.\n";
+            }
+
+        } while (opcao != 8);
+
+        return 0;
+    }
